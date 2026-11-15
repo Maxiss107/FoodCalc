@@ -1,0 +1,37 @@
+target-version = "py312"
+
+line-length = 100
+
+exclude = [
+    "**/migrations/**",
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+]
+
+[lint]
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "DJ", "RUF"]
+
+ignore = [
+    "RUF012",
+    "RUF002",
+    "DJ001",   
+    "B008",    
+    "E501", 
+]
+
+fixable = ["ALL"]
+unfixable = []
+
+[lint.per-file-ignores]
+"**/tests/**" = [
+    "E501",     
+    "S101",
+]
+"**/tests.py" = ["E501", "S101"]
+
+[lint.isort]
+known-first-party = ["apps", "core"]
