@@ -18,6 +18,8 @@ class AppConfig(BaseSettings):
 
     CORS_ALLOWED_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
 
+    SYSTEM_USER_EMAIL: str = "system@foodcalc.local"
+
     model_config = SettingsConfigDict(
         env_file=BASE_DIR.parent / ".env",
         env_file_encoding="utf-8",
