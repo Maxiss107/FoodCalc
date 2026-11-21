@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 class AppConfig(BaseSettings):
     DEBUG: bool = True
-    SECRET_KEY: str = "django-insecure-dev-key"
+    SECRET_KEY: str = "django-insecure-foodcalc-dev-key-32-chars"
     ALLOWED_HOSTS: str = "localhost,127.0.0.1"
 
     POSTGRES_DB: str = "foodcalc"

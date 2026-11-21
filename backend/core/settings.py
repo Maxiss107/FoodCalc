@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from core.config import BASE_DIR, config
 
@@ -67,6 +68,11 @@ else:
             "PORT": config.POSTGRES_PORT,
         }
     }
+
+NINJA_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
 
 CORS_ALLOWED_ORIGINS = config.cors_origins_list
 
