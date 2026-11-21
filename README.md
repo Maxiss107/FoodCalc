@@ -36,3 +36,6 @@
 * **Python & FastAPI** — асинхронный высокопроизводительный API-сервер.
 * **PostgreSQL** — хранение структуры каталогов, ингредиентов, рецептов, остатков и параметров заказов.
 * **Docker** — контейнеризация приложения.
+
+* ## 🎨 Дизайн проекта FoodCalc
+[Открыть макеты в Figma](https://www.figma.com/design/nCIOiWccFsiUwojVmCv6ge/Untitled?node-id=0-1&p=f&t=dqBxGGg5DLccaLZc-0)
