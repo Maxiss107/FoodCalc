@@ -46,7 +46,7 @@ jobs:
     env:
       DJANGO_SETTINGS_MODULE: "core.settings"
       DEBUG: "True"
-      SECRET_KEY: "ci-test-secret-key"
+      SECRET_KEY: "ci-test-foodcalc-secret-key-32chr"
       POSTGRES_DB: "foodcalc_test"
       POSTGRES_USER: "foodcalc_user"
       POSTGRES_PASSWORD: "foodcalc_pass"
