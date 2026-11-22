@@ -3,9 +3,10 @@ from datetime import timedelta
 
 import pytest
 from django.test import Client
-from ninja_jwt.tokens import AccessToken
+from ninja_jwt.tokens import AccessToken, RefreshToken
 
 from apps.accounts.models import User
+from apps.accounts.services import DEFAULT_REFRESH_LIFETIME, REMEMBER_ME_REFRESH_LIFETIME
 
 pytestmark = pytest.mark.django_db
 
@@ -78,6 +79,47 @@ def test_login_success(client: Client) -> None:
     assert data["access"]
     assert data["refresh"]
     assert data["token_type"] == "bearer"
+
+
+def test_login_remember_me_sets_refresh_lifetime(client: Client) -> None:
+    """Флаг remember_me увеличивает срок жизни refresh-токена с 1 дня до 30 дней."""
+    User.objects.create_user(email="chef@foodcalc.ru", password="StrongPassword123")
+
+    short_response = client.post(
+        "/api/auth/login",
+        data=json.dumps(
+            {
+                "email": "chef@foodcalc.ru",
+                "password": "StrongPassword123",
+                "remember_me": False,
+            },
+        ),
+        content_type="application/json",
+    )
+    long_response = client.post(
+        "/api/auth/login",
+        data=json.dumps(
+            {
+                "email": "chef@foodcalc.ru",
+                "password": "StrongPassword123",
+                "remember_me": True,
+            },
+        ),
+        content_type="application/json",
+    )
+
+    assert short_response.status_code == 200
+    assert long_response.status_code == 200
+
+    short_refresh = RefreshToken(short_response.json()["refresh"])
+    long_refresh = RefreshToken(long_response.json()["refresh"])
+
+    short_ttl = short_refresh["exp"] - short_refresh["iat"]
+    long_ttl = long_refresh["exp"] - long_refresh["iat"]
+
+    assert abs(short_ttl - int(DEFAULT_REFRESH_LIFETIME.total_seconds())) <= 5
+    assert abs(long_ttl - int(REMEMBER_ME_REFRESH_LIFETIME.total_seconds())) <= 5
+    assert long_ttl > short_ttl
 
 
 def test_login_nonexistent_email_returns_401(client: Client) -> None:
