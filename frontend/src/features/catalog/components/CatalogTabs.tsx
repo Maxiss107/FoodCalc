@@ -1,0 +1,3 @@
+export type CatalogTab="ingredients"|"recipes";
+interface Props{activeTab:CatalogTab;onChange:(tab:CatalogTab)=>void}
+export default function CatalogTabs({activeTab,onChange}:Props){return <div className="catalog-tabs" role="tablist" aria-label="Каталог"><button type="button" role="tab" aria-selected={activeTab==="ingredients"} className={activeTab==="ingredients"?"selected":""} onClick={()=>onChange("ingredients")}>Ингредиенты</button><button type="button" role="tab" aria-selected={activeTab==="recipes"} className={activeTab==="recipes"?"selected":""} onClick={()=>onChange("recipes")}>Рецепты</button></div>}
