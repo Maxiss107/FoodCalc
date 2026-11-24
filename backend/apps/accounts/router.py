@@ -32,7 +32,12 @@ def register(request: HttpRequest, payload: RegisterSchema) -> Status[dict[str, 
 )
 def login(request: HttpRequest, payload: LoginSchema) -> dict[str, str]:
     """Вход по email и паролю с выдачей пары JWT-токенов."""
-    return login_user(request=request, email=payload.email, password=payload.password)
+    return login_user(
+        request=request,
+        email=payload.email,
+        password=payload.password,
+        remember_me=payload.remember_me,
+    )
 
 
 @router.post(

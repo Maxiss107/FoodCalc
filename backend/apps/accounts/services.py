@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth import authenticate
 from django.http import HttpRequest
 from ninja.errors import HttpError
@@ -6,10 +8,15 @@ from ninja_jwt.tokens import RefreshToken
 
 from apps.accounts.models import User
 
+DEFAULT_REFRESH_LIFETIME = timedelta(days=1)
+REMEMBER_ME_REFRESH_LIFETIME = timedelta(days=30)
 
-def get_tokens_for_user(user: User) -> dict[str, str]:
+
+def get_tokens_for_user(user: User, *, remember_me: bool = False) -> dict[str, str]:
     """Генерирует пару access и refresh JWT-токенов для пользователя."""
     refresh = RefreshToken.for_user(user)
+    lifetime = REMEMBER_ME_REFRESH_LIFETIME if remember_me else DEFAULT_REFRESH_LIFETIME
+    refresh.set_exp(from_time=refresh.current_time, lifetime=lifetime)
     return {
         "access": str(refresh.access_token),
         "refresh": str(refresh),
@@ -27,7 +34,13 @@ def register_user(email: str, password: str) -> dict[str, str]:
     return get_tokens_for_user(user)
 
 
-def login_user(request: HttpRequest, email: str, password: str) -> dict[str, str]:
+def login_user(
+    request: HttpRequest,
+    email: str,
+    password: str,
+    *,
+    remember_me: bool = False,
+) -> dict[str, str]:
     """Проверяет email и пароль через Django auth и возвращает пару токенов."""
     normalized_email = email.strip().lower()
     user = authenticate(request, email=normalized_email, password=password)
@@ -35,7 +48,7 @@ def login_user(request: HttpRequest, email: str, password: str) -> dict[str, str
     if user is None or not user.is_active or getattr(user, "is_system", False):
         raise HttpError(401, "Invalid email or password.")
 
-    return get_tokens_for_user(user)
+    return get_tokens_for_user(user, remember_me=remember_me)
 
 
 def refresh_tokens(refresh_token: str) -> dict[str, str]:
