@@ -1,22 +1,25 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-const TOKEN_KEY = 'foodcalc_token';
+const ACCESS_TOKEN_KEY = 'foodcalc_access_token';
+const REFRESH_TOKEN_KEY = 'foodcalc_refresh_token';
 
-// Утилиты для работы с токеном (учитываем галочку "Запомнить меня")
 export const tokenStorage = {
   get(): string | null {
-    return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(ACCESS_TOKEN_KEY) || sessionStorage.getItem(ACCESS_TOKEN_KEY);
   },
-  set(token: string, remember: boolean) {
+  getRefresh(): string | null {
+    return localStorage.getItem(REFRESH_TOKEN_KEY) || sessionStorage.getItem(REFRESH_TOKEN_KEY);
+  },
+  setTokens(access: string, refresh: string, remember: boolean) {
     this.clear();
-    if (remember) {
-      localStorage.setItem(TOKEN_KEY, token);
-    } else {
-      sessionStorage.setItem(TOKEN_KEY, token);
-    }
+    const storage = remember ? localStorage : sessionStorage;
+    storage.setItem(ACCESS_TOKEN_KEY, access);
+    storage.setItem(REFRESH_TOKEN_KEY, refresh);
   },
   clear() {
-    localStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
   },
 };
 

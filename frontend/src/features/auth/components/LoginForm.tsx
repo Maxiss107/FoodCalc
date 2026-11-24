@@ -20,7 +20,11 @@ export function LoginForm() {
     setErrorMessage(null);
 
     try {
-      await authApi.login({ email, password }, rememberMe);
+      await authApi.login({
+        email,
+        password,
+        remember_me: rememberMe,
+      });
       navigate('/ingredients');
     } catch (error) {
       if (error instanceof ApiError) {
@@ -36,7 +40,6 @@ export function LoginForm() {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Поле: Электронная почта */}
         <div>
           <label className="block text-sm font-semibold text-[#1E293B] mb-2">
             Электронная почта
@@ -60,7 +63,6 @@ export function LoginForm() {
           </div>
         </div>
 
-        {/* Поле: Пароль */}
         <div>
           <label className="block text-sm font-semibold text-[#1E293B] mb-2">
             Пароль
@@ -103,7 +105,6 @@ export function LoginForm() {
           </div>
         </div>
 
-        {/* Чекбокс "Запомнить меня" */}
         <div className="flex items-center pt-0.5">
           <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
             <input
@@ -117,7 +118,6 @@ export function LoginForm() {
           </label>
         </div>
 
-        {/* Кнопка входа */}
         <button
           type="submit"
           disabled={isLoading}
@@ -128,7 +128,6 @@ export function LoginForm() {
         </button>
       </form>
 
-      {/* Модальное окно ошибки по макету 07_Modal_Windows 2 */}
       <ConfirmModal
         isOpen={Boolean(errorMessage)}
         onClose={() => setErrorMessage(null)}
