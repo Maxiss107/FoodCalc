@@ -1,0 +1,121 @@
+[
+  {
+    "model": "catalog.ingredient",
+    "pk": "10000000-0000-0000-0000-000000000001",
+    "fields": {
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "Мука пшеничная в/с (Макфа)",
+      "purchase_price": "140.00",
+      "package_weight": "2000.00",
+      "stock_amount": "0.00",
+      "calories": "342.00",
+      "proteins": "10.30",
+      "fats": "1.10",
+      "carbs": "70.60",
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.ingredient",
+    "pk": "10000000-0000-0000-0000-000000000002",
+    "fields": {
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "Сахар-песок",
+      "purchase_price": "75.00",
+      "package_weight": "1000.00",
+      "stock_amount": "0.00",
+      "calories": "398.00",
+      "proteins": "0.00",
+      "fats": "0.00",
+      "carbs": "99.70",
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.ingredient",
+    "pk": "10000000-0000-0000-0000-000000000003",
+    "fields": {
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "Сливочное масло 82.5% (Экомилк)",
+      "purchase_price": "220.00",
+      "package_weight": "180.00",
+      "stock_amount": "0.00",
+      "calories": "748.00",
+      "proteins": "0.60",
+      "fats": "82.50",
+      "carbs": "0.80",
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.ingredient",
+    "pk": "10000000-0000-0000-0000-000000000004",
+    "fields": {
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "Яйцо куриное С0 (10 шт)",
+      "purchase_price": "130.00",
+      "package_weight": "600.00",
+      "stock_amount": "0.00",
+      "calories": "157.00",
+      "proteins": "12.70",
+      "fats": "11.50",
+      "carbs": "0.70",
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.ingredient",
+    "pk": "10000000-0000-0000-0000-000000000005",
+    "fields": {
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "Сливки 33% для взбивания (Петмол)",
+      "purchase_price": "340.00",
+      "package_weight": "500.00",
+      "stock_amount": "0.00",
+      "calories": "322.00",
+      "proteins": "2.20",
+      "fats": "33.00",
+      "carbs": "4.00",
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.ingredient",
+    "pk": "10000000-0000-0000-0000-000000000006",
+    "fields": {
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "Творожный сыр Cremette (Hochland)",
+      "purchase_price": "590.00",
+      "package_weight": "800.00",
+      "stock_amount": "0.00",
+      "calories": "287.00",
+      "proteins": "6.00",
+      "fats": "28.00",
+      "carbs": "3.00",
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.ingredient",
+    "pk": "10000000-0000-0000-0000-000000000007",
+    "fields": {
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "Шоколад тёмный 54.5% (Callebaut 811)",
+      "purchase_price": "1650.00",
+      "package_weight": "1000.00",
+      "stock_amount": "0.00",
+      "calories": "550.00",
+      "proteins": "5.10",
+      "fats": "36.60",
+      "carbs": "46.00",
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    }
+  }
+]
