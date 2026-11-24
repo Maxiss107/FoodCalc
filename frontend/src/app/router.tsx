@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
+import { LoginPage } from '../features/auth/pages/LoginPage';
 
 export const router = createBrowserRouter([
   {
@@ -8,7 +9,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/login',
-    element: <div className="p-6 text-xl font-semibold">Экран входа</div>,
+    element: <LoginPage />,
   },
   {
     path: '/register',
@@ -19,7 +20,15 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/catalog',
-        element: <div className="text-2xl font-bold">Каталог и склад</div>,
+        element: <Navigate to="/ingredients" replace />,
+      },
+      {
+        path: '/ingredients',
+        element: <div className="text-2xl font-bold">Каталог ингредиентов</div>,
+      },
+      {
+        path: '/recipes',
+        element: <div className="text-2xl font-bold">Каталог рецептов</div>,
       },
       {
         path: '/recipes/new',

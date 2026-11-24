@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 interface HeaderProps {
   onMenuClick?: () => void;
 }
@@ -10,7 +8,6 @@ export function Header({ onMenuClick }: HeaderProps) {
       style={{ height: 'var(--header-height)' }}
       className="sticky top-0 z-10 flex items-center justify-between px-6 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] shrink-0"
     >
-      {/* Левая часть: кнопка меню для мобильных + место под хлебные крошки или поиск */}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -22,27 +19,22 @@ export function Header({ onMenuClick }: HeaderProps) {
         </button>
 
         <span className="text-sm text-[var(--text-muted)] hidden sm:inline">
-          Управление себестоимостью
+          Рабочее пространство мастера
         </span>
       </div>
 
-      {/* Правая часть: профиль и выход */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-[var(--accent-soft)] text-[var(--accent-text)] flex items-center justify-center text-sm font-semibold">
-            П
+      <div className="flex items-center gap-3">
+        <div className="text-right hidden sm:block">
+          <div className="text-sm font-semibold text-[var(--text-main)]">
+            Мастер кухни
           </div>
-          <span className="text-sm font-medium text-[var(--text-main)]">
-            Пользователь
-          </span>
+          <div className="text-xs text-[var(--text-muted)]">
+            user@foodcalc.ru
+          </div>
         </div>
-
-        <Link
-          to="/login"
-          className="text-sm text-[var(--text-muted)] hover:text-red-600 transition-colors"
-        >
-          Выйти
-        </Link>
+        <div className="w-9 h-9 rounded-full bg-[var(--accent-soft)] text-[var(--accent-text)] border border-[var(--accent-primary)]/20 flex items-center justify-center text-sm font-bold">
+          М
+        </div>
       </div>
     </header>
   );
