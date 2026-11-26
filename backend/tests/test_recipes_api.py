@@ -1,6 +1,5 @@
 import json
 from decimal import Decimal
-from uuid import uuid4
 
 import pytest
 from django.test import Client
@@ -50,7 +49,10 @@ def sample_ingredients(test_user: User) -> dict[str, Ingredient]:
 
 
 def test_create_recipe_with_items_and_calculations(
-    client: Client, auth_headers: dict[str, str], test_user: User, sample_ingredients: dict[str, Ingredient]
+    client: Client,
+    auth_headers: dict[str, str],
+    test_user: User,
+    sample_ingredients: dict[str, Ingredient],
 ):
     """Проверяем создание рецепта через POST /api/recipes с составом и авторасчетом."""
     flour = sample_ingredients["flour"]
@@ -86,7 +88,10 @@ def test_create_recipe_with_items_and_calculations(
 
 
 def test_get_recipe_detail(
-    client: Client, auth_headers: dict[str, str], test_user: User, sample_ingredients: dict[str, Ingredient]
+    client: Client,
+    auth_headers: dict[str, str],
+    test_user: User,
+    sample_ingredients: dict[str, Ingredient],
 ):
     """Проверяем GET /api/recipes/{id}."""
     flour = sample_ingredients["flour"]
@@ -111,7 +116,10 @@ def test_get_recipe_detail(
 
 
 def test_recipe_snapshot_endpoint(
-    client: Client, auth_headers: dict[str, str], test_user: User, sample_ingredients: dict[str, Ingredient]
+    client: Client,
+    auth_headers: dict[str, str],
+    test_user: User,
+    sample_ingredients: dict[str, Ingredient],
 ):
     """Проверяем GET /api/recipes/{id}/snapshot для интеграции с заказами."""
     sugar = sample_ingredients["sugar"]
@@ -137,7 +145,10 @@ def test_recipe_snapshot_endpoint(
 
 
 def test_patch_recipe_items(
-    client: Client, auth_headers: dict[str, str], test_user: User, sample_ingredients: dict[str, Ingredient]
+    client: Client,
+    auth_headers: dict[str, str],
+    test_user: User,
+    sample_ingredients: dict[str, Ingredient],
 ):
     """Проверяем замену состава ингредиентов в рецепте через PATCH."""
     flour = sample_ingredients["flour"]

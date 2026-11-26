@@ -183,9 +183,7 @@ class Recipe(OwnedModel):
         weight = self.total_weight
         if weight <= Decimal("0.00"):
             return Decimal("0.00")
-        return ((self.total_fats / weight) * HUNDRED).quantize(
-            TWO_PLACES, rounding=ROUND_HALF_UP
-        )
+        return ((self.total_fats / weight) * HUNDRED).quantize(TWO_PLACES, rounding=ROUND_HALF_UP)
 
     @property
     def carbs_per_100g(self) -> Decimal:
@@ -193,9 +191,7 @@ class Recipe(OwnedModel):
         weight = self.total_weight
         if weight <= Decimal("0.00"):
             return Decimal("0.00")
-        return ((self.total_carbs / weight) * HUNDRED).quantize(
-            TWO_PLACES, rounding=ROUND_HALF_UP
-        )
+        return ((self.total_carbs / weight) * HUNDRED).quantize(TWO_PLACES, rounding=ROUND_HALF_UP)
 
     def to_snapshot(self) -> dict[str, Any]:
         """
