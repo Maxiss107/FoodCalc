@@ -1,6 +1,5 @@
 import json
 from decimal import Decimal
-from uuid import uuid4
 
 import pytest
 from django.test import Client
@@ -23,7 +22,9 @@ def auth_headers(test_user: User) -> dict[str, str]:
     return {"HTTP_AUTHORIZATION": f"Bearer {token}"}
 
 
-def test_list_ingredients_empty_and_created(client: Client, auth_headers: dict[str, str], test_user: User):
+def test_list_ingredients_empty_and_created(
+    client: Client, auth_headers: dict[str, str], test_user: User
+):
     """Проверяем получение списка ингредиентов пользователя."""
     response = client.get("/api/catalog/ingredients", **auth_headers)
     assert response.status_code == 200
@@ -108,7 +109,9 @@ def test_create_ingredient_success(client: Client, auth_headers: dict[str, str],
     assert data["owner_id"] == str(test_user.id)
 
 
-def test_patch_ingredient_stock_and_price(client: Client, auth_headers: dict[str, str], test_user: User):
+def test_patch_ingredient_stock_and_price(
+    client: Client, auth_headers: dict[str, str], test_user: User
+):
     """Проверяем быстрое обновление остатка и цены через PATCH."""
     ing = Ingredient.objects.create(
         owner=test_user,
