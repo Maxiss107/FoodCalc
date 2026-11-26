@@ -12,8 +12,11 @@ from apps.orders.schemas import (
     OrderStatusUpdateSchema,
     PlanFactInSchema,
     PlanFactOutSchema,
+    ShoppingCalcRequestSchema,
+    ShoppingListOut,
 )
 from apps.orders.services import (
+    calculate_order_shopping_list,
     create_order,
     get_order,
     list_orders,
@@ -56,3 +59,21 @@ def post_order_plan_fact(
     payload: PlanFactInSchema,
 ) -> PlanFactOutSchema:
     return save_order_plan_fact(user=request.auth, order_id=order_id, data=payload)
+
+
+@router.post(
+    "/{order_id}/shopping-list",
+    response=ShoppingListOut,
+    summary="Calculate the shopping list for a user's order",
+)
+def get_order_shopping_list(
+    request,
+    order_id: UUID,
+    payload: ShoppingCalcRequestSchema | None = None,
+):
+    """POST-эндпоинт расчёта таблицы закупок для заказа с опциональными ручными правками веса и цены."""
+    return calculate_order_shopping_list(
+        user=request.auth,
+        order_id=order_id,
+        data=payload,
+    )
