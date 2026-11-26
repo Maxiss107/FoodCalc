@@ -1,5 +1,6 @@
 from datetime import datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
+from typing import Any
 from uuid import UUID
 
 from ninja import Schema
@@ -176,3 +177,7 @@ class IngredientOutSchema(Schema):
     carbs: Decimal
     created_at: datetime
     updated_at: datetime
+
+    @staticmethod
+    def resolve_price_per_gram(obj: Any) -> Decimal:
+        return obj.price_per_gram.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
