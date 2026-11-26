@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
@@ -61,3 +62,42 @@ class OrderOut(Schema):
     items: list[OrderItemOut] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
+
+
+class ShoppingStatus(StrEnum):
+    IN_STOCK = "in_stock"
+    PARTIAL = "partial"
+    OUT_OF_STOCK = "out_of_stock"
+
+
+class ShoppingOverrideItemSchema(Schema):
+    ingredient_id: UUID
+    required_grams: Decimal | None = Field(default=None, gt=0)
+    package_weight: Decimal | None = Field(default=None, gt=0)
+    purchase_price: Decimal | None = Field(default=None, ge=0)
+
+
+class ShoppingCalcRequestSchema(Schema):
+    overrides: list[ShoppingOverrideItemSchema] = Field(default_factory=list)
+
+
+class ShoppingListItemOut(Schema):
+    ingredient_id: UUID | None = None
+    ingredient_name: str
+    required_grams: Decimal
+    stock_amount: Decimal
+    deficit_grams: Decimal
+    status: ShoppingStatus
+    status_label: str
+    package_weight: Decimal
+    purchase_price: Decimal
+    packs_to_buy: int
+    leftover_grams: Decimal
+    estimated_cost: Decimal
+
+
+class ShoppingListOut(Schema):
+    order_id: UUID
+    customer_name: str
+    items: list[ShoppingListItemOut] = Field(default_factory=list)
+    total_estimated_cost: Decimal
