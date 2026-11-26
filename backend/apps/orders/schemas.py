@@ -7,24 +7,7 @@ from uuid import UUID
 from ninja import Field, Schema
 
 from apps.orders.models import Order
-
-
-class SnapshotIngredientSchema(Schema):
-    ingredient_id: UUID | None = None
-    name: str = Field(min_length=1, max_length=255)
-    amount: Decimal = Field(gt=0)
-    unit: str = Field(default="g", max_length=20)
-    package_weight: Decimal = Field(gt=0)
-    purchase_price: Decimal = Field(ge=0)
-    cost: Decimal = Field(ge=0)
-
-
-class RecipeSnapshotSchema(Schema):
-    recipe_id: UUID | None = None
-    title: str = Field(min_length=1, max_length=255)
-    output_weight: Decimal | None = Field(default=None, gt=0)
-    total_cost: Decimal = Field(ge=0)
-    ingredients: list[SnapshotIngredientSchema] = Field(default_factory=list)
+from apps.recipes.schemas import RecipeSnapshotSchema
 
 
 class OrderItemCreateSchema(Schema):
@@ -53,11 +36,18 @@ class OrderUpdateSchema(Schema):
     status: Order.Status | None = None
 
 
+class OrderStatusUpdateSchema(Schema):
+    status: Order.Status
+
+
 class OrderOut(Schema):
     id: UUID
     owner_id: UUID
     customer_name: str
     total_price: Decimal
+    planned_cost: Decimal
+    actual_cost: Decimal | None = None
+    actual_time_minutes: int | None = None
     status: str
     items: list[OrderItemOut] = Field(default_factory=list)
     created_at: datetime
@@ -101,3 +91,20 @@ class ShoppingListOut(Schema):
     customer_name: str
     items: list[ShoppingListItemOut] = Field(default_factory=list)
     total_estimated_cost: Decimal
+
+
+class PlanFactInSchema(Schema):
+    actual_cost: Decimal = Field(ge=0, max_digits=10, decimal_places=2)
+    actual_time_minutes: int = Field(ge=0)
+
+
+class PlanFactOutSchema(Schema):
+    order_id: UUID
+    order_price: Decimal
+    planned_cost: Decimal
+    actual_cost: Decimal
+    actual_time_minutes: int
+    cost_deviation: Decimal
+    planned_profit: Decimal
+    actual_profit: Decimal
+    hourly_rate: Decimal | None = None
