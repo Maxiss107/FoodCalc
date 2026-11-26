@@ -1,10 +1,12 @@
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MinValueValidator
 from django.db import models
 
 from core.models import CoreModel, OwnedModel
+
+TWO_PLACES = Decimal("0.01")
 
 
 class Order(OwnedModel):
@@ -28,6 +30,19 @@ class Order(OwnedModel):
         default=Status.NEW,
         verbose_name="Status",
     )
+    actual_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0.00"))],
+        verbose_name="Actual cost",
+    )
+    actual_time_minutes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Actual time (minutes)",
+    )
 
     class Meta(OwnedModel.Meta):
         verbose_name = "Order"
@@ -35,6 +50,14 @@ class Order(OwnedModel):
 
     def __str__(self) -> str:
         return self.customer_name
+
+    @property
+    def planned_cost(self) -> Decimal:
+        total = sum(
+            (item.unit_cost_snapshot for item in self.items.all()),
+            start=Decimal("0.00"),
+        )
+        return total.quantize(TWO_PLACES, rounding=ROUND_HALF_UP)
 
 
 class OrderItem(CoreModel):
@@ -44,8 +67,14 @@ class OrderItem(CoreModel):
         related_name="items",
         verbose_name="Order",
     )
-    # временное поле, пока не добавлена модель recipes.Recipe
-    recipe_id = models.UUIDField(null=True, blank=True, verbose_name="Recipe ID")
+    recipe = models.ForeignKey(
+        "recipes.Recipe",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="order_items",
+        verbose_name="Recipe",
+    )
     recipe_title_snapshot = models.CharField(max_length=255, verbose_name="Recipe title snapshot")
     unit_cost_snapshot = models.DecimalField(
         max_digits=10,
