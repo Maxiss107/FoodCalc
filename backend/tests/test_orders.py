@@ -7,12 +7,9 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from pydantic import ValidationError
 
 from apps.orders.models import Order, OrderItem
-from apps.orders.schemas import (
-    OrderCreateSchema,
-    OrderOut,
-    RecipeSnapshotSchema,
-    SnapshotIngredientSchema,
-)
+from apps.orders.schemas import OrderCreateSchema, OrderOut, PlanFactInSchema
+from apps.orders.services import calculate_plan_fact
+from apps.recipes.schemas import RecipeSnapshotSchema
 
 User = get_user_model()
 
@@ -23,17 +20,34 @@ def _create_user():
 
 def _recipe_snapshot() -> dict:
     return {
-        "title": "Медовик",
-        "output_weight": Decimal("1000.00"),
-        "total_cost": Decimal("195.00"),
-        "ingredients": [
+        "recipe_id": str(uuid.uuid4()),
+        "name": "Медовик",
+        "is_semi_finished": False,
+        "instructions": "Испечь коржи и прослоить кремом.",
+        "total_weight": "1000.00",
+        "base_cost": "195.00",
+        "safety_margin_percent": "10.00",
+        "planned_cost": "214.50",
+        "nutrition_total": {
+            "calories": "3000.00",
+            "proteins": "40.00",
+            "fats": "120.00",
+            "carbs": "380.00",
+        },
+        "nutrition_per_100g": {
+            "calories": "300.00",
+            "proteins": "4.00",
+            "fats": "12.00",
+            "carbs": "38.00",
+        },
+        "items": [
             {
-                "name": "Сливки",
-                "amount": Decimal("250.00"),
-                "unit": "g",
-                "package_weight": Decimal("500.00"),
-                "purchase_price": Decimal("390.00"),
-                "cost": Decimal("195.00"),
+                "ingredient_id": str(uuid.uuid4()),
+                "ingredient_name": "Сливки",
+                "amount_grams": "250.00",
+                "purchase_price": "390.00",
+                "package_weight": "500.00",
+                "item_cost": "195.00",
             }
         ],
     }
@@ -41,7 +55,6 @@ def _recipe_snapshot() -> dict:
 
 @pytest.mark.django_db
 def test_create_order_with_defaults():
-    """Проверяем создание заказа: UUID, владелец, статус NEW и Decimal-цена."""
     owner = _create_user()
     order = Order.objects.create(customer_name="Торт на день рождения", owner=owner)
 
@@ -49,12 +62,37 @@ def test_create_order_with_defaults():
     assert order.owner == owner
     assert order.status == Order.Status.NEW
     assert order.total_price == Decimal("0.00")
+    assert order.actual_cost is None
+    assert order.actual_time_minutes is None
     assert str(order) == "Торт на день рождения"
 
 
 @pytest.mark.django_db
+def test_planned_cost_sums_unit_cost_snapshots():
+    order = Order.objects.create(customer_name="Торт", owner=_create_user())
+    OrderItem.objects.create(
+        order=order,
+        recipe_title_snapshot="Медовик",
+        unit_cost_snapshot=Decimal("12.05"),
+    )
+    OrderItem.objects.create(
+        order=order,
+        recipe_title_snapshot="Наполеон",
+        unit_cost_snapshot=Decimal("7.95"),
+    )
+
+    assert order.planned_cost == Decimal("20.00")
+
+
+@pytest.mark.django_db
+def test_planned_cost_is_zero_without_items():
+    order = Order.objects.create(customer_name="Пустой заказ", owner=_create_user())
+
+    assert order.planned_cost == Decimal("0.00")
+
+
+@pytest.mark.django_db
 def test_full_clean_rejects_negative_prices():
-    """Проверяем, что full_clean отклоняет отрицательные цены заказа и позиции."""
     owner = _create_user()
 
     with pytest.raises(DjangoValidationError):
@@ -62,6 +100,13 @@ def test_full_clean_rejects_negative_prices():
             customer_name="Торт на день рождения",
             owner=owner,
             total_price=Decimal("-0.01"),
+        ).full_clean()
+
+    with pytest.raises(DjangoValidationError):
+        Order(
+            customer_name="Торт на день рождения",
+            owner=owner,
+            actual_cost=Decimal("-0.01"),
         ).full_clean()
 
     order = Order.objects.create(customer_name="Торт на день рождения", owner=owner)
@@ -76,60 +121,41 @@ def test_full_clean_rejects_negative_prices():
 
 @pytest.mark.django_db
 def test_order_item_snapshot_keeps_original_data():
-    """Проверяем, что слепок рецепта не меняется вместе с исходным словарём."""
     order = Order.objects.create(customer_name="Торт на день рождения", owner=_create_user())
-    recipe = _recipe_snapshot()
+    snapshot = _recipe_snapshot()
     item = OrderItem.objects.create(
         order=order,
-        recipe_title_snapshot=recipe["title"],
+        recipe_title_snapshot=snapshot["name"],
         unit_cost_snapshot=Decimal("12.05"),
-        recipe_snapshot=recipe,
+        recipe_snapshot=snapshot,
     )
 
-    recipe["title"] = "Наполеон"
-    recipe["ingredients"][0]["amount"] = Decimal("999.00")
+    snapshot["name"] = "Наполеон"
+    snapshot["items"][0]["amount_grams"] = "999.00"
     item.refresh_from_db()
 
     assert item.recipe_title_snapshot == "Медовик"
-    assert item.recipe_snapshot["title"] == "Медовик"
-    assert item.recipe_snapshot["total_cost"] == "195.00"
-    assert item.recipe_snapshot["ingredients"][0]["name"] == "Сливки"
-    assert item.recipe_snapshot["ingredients"][0]["amount"] == "250.00"
-    assert item.recipe_snapshot["ingredients"][0]["purchase_price"] == "390.00"
+    assert item.recipe_snapshot["name"] == "Медовик"
+    assert item.recipe_snapshot["base_cost"] == "195.00"
+    assert item.recipe_snapshot["items"][0]["ingredient_name"] == "Сливки"
+    assert item.recipe_snapshot["items"][0]["amount_grams"] == "250.00"
+    assert item.recipe_snapshot["items"][0]["purchase_price"] == "390.00"
 
 
 def test_recipe_snapshot_schema_validation():
-    """Проверяем валидацию RecipeSnapshotSchema и значения по умолчанию."""
-    payload = _recipe_snapshot()
-    payload["recipe_id"] = str(uuid.uuid4())
-    snapshot = RecipeSnapshotSchema(**payload)
+    snapshot = RecipeSnapshotSchema(**_recipe_snapshot())
 
     assert isinstance(snapshot.recipe_id, uuid.UUID)
-    assert snapshot.ingredients[0].unit == "g"
-    assert snapshot.ingredients[0].amount == Decimal("250.00")
+    assert snapshot.name == "Медовик"
+    assert snapshot.planned_cost == Decimal("214.50")
+    assert snapshot.items[0].amount_grams == Decimal("250.00")
+    assert snapshot.nutrition_per_100g.calories == Decimal("300.00")
 
     with pytest.raises(ValidationError):
-        RecipeSnapshotSchema(title="", total_cost=Decimal("10.00"))
-
-
-@pytest.mark.parametrize(
-    "amount, purchase_price",
-    [(Decimal("0"), Decimal("390")), (Decimal("250"), Decimal("-1"))],
-)
-def test_snapshot_ingredient_rejects_zero_amount_and_negative_price(amount, purchase_price):
-    """Проверяем, что нулевая граммовка и отрицательная цена отклоняются."""
-    with pytest.raises(ValidationError):
-        SnapshotIngredientSchema(
-            name="Сливки",
-            amount=amount,
-            package_weight=Decimal("500"),
-            purchase_price=purchase_price,
-            cost=Decimal("195"),
-        )
+        RecipeSnapshotSchema(name="", base_cost=Decimal("10.00"))
 
 
 def test_order_create_schema_validation():
-    """Проверяем OrderCreateSchema: значения по умолчанию и отрицательная цена."""
     schema = OrderCreateSchema(customer_name="Торт на день рождения")
     assert schema.total_price == Decimal("0.00")
     assert schema.items == []
@@ -144,9 +170,16 @@ def test_order_create_schema_validation():
         OrderCreateSchema(customer_name="Торт на день рождения", total_price=Decimal("-1.00"))
 
 
+def test_plan_fact_schema_rejects_negative_values():
+    with pytest.raises(ValidationError):
+        PlanFactInSchema(actual_cost=Decimal("-0.01"), actual_time_minutes=10)
+
+    with pytest.raises(ValidationError):
+        PlanFactInSchema(actual_cost=Decimal("10.00"), actual_time_minutes=-1)
+
+
 @pytest.mark.django_db
 def test_order_out_serializes_order_with_items():
-    """Проверяем сериализацию реального заказа с позицией через OrderOut."""
     order = Order.objects.create(
         customer_name="Торт на день рождения",
         owner=_create_user(),
@@ -165,11 +198,67 @@ def test_order_out_serializes_order_with_items():
     assert data.customer_name == "Торт на день рождения"
     assert data.status == "new"
     assert data.total_price == Decimal("195.00")
+    assert data.planned_cost == Decimal("12.05")
+    assert data.actual_cost is None
+    assert data.actual_time_minutes is None
     assert data.owner_id == order.owner_id
     assert len(data.items) == 1
     assert data.items[0].recipe_title_snapshot == "Медовик"
     assert data.items[0].unit_cost_snapshot == Decimal("12.05")
 
     snapshot = data.items[0].recipe_snapshot
-    assert snapshot["title"] == "Медовик"
-    assert snapshot["ingredients"][0]["amount"] == "250.00"
+    assert snapshot["name"] == "Медовик"
+    assert snapshot["items"][0]["amount_grams"] == "250.00"
+
+
+def test_calculate_plan_fact_overrun():
+    result = calculate_plan_fact(
+        order_price=Decimal("100.00"),
+        planned_cost=Decimal("40.00"),
+        actual_cost=Decimal("55.50"),
+        actual_time_minutes=90,
+    )
+
+    assert result["cost_deviation"] == Decimal("15.50")
+    assert result["planned_profit"] == Decimal("60.00")
+    assert result["actual_profit"] == Decimal("44.50")
+    assert result["hourly_rate"] == Decimal("29.67")
+
+
+def test_calculate_plan_fact_saving():
+    result = calculate_plan_fact(
+        order_price=Decimal("100.00"),
+        planned_cost=Decimal("40.00"),
+        actual_cost=Decimal("30.00"),
+        actual_time_minutes=60,
+    )
+
+    assert result["cost_deviation"] == Decimal("-10.00")
+    assert result["actual_profit"] == Decimal("70.00")
+    assert result["hourly_rate"] == Decimal("70.00")
+
+
+def test_calculate_plan_fact_zero_minutes_has_no_hourly_rate():
+    result = calculate_plan_fact(
+        order_price=Decimal("100.00"),
+        planned_cost=Decimal("40.00"),
+        actual_cost=Decimal("40.00"),
+        actual_time_minutes=0,
+    )
+
+    assert result["hourly_rate"] is None
+    assert result["actual_profit"] == Decimal("60.00")
+
+
+def test_calculate_plan_fact_rounds_to_two_places():
+    result = calculate_plan_fact(
+        order_price=Decimal("100.00"),
+        planned_cost=Decimal("33.33"),
+        actual_cost=Decimal("33.34"),
+        actual_time_minutes=7,
+    )
+
+    assert result["cost_deviation"] == Decimal("0.01")
+    assert result["planned_profit"] == Decimal("66.67")
+    assert result["actual_profit"] == Decimal("66.66")
+    assert result["hourly_rate"] == Decimal("571.37")
