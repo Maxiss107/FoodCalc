@@ -22,9 +22,9 @@ def list_recipes(
 
     Поддерживает фильтрацию по типу (полуфабрикаты/блюда) и поиск по названию.
     """
-    qs = Recipe.objects.filter(
-        Q(owner=user) | Q(owner__is_system=True)
-    ).prefetch_related("recipe_ingredients__ingredient")
+    qs = Recipe.objects.filter(Q(owner=user) | Q(owner__is_system=True)).prefetch_related(
+        "recipe_ingredients__ingredient"
+    )
 
     if is_semi_finished is not None:
         qs = qs.filter(is_semi_finished=is_semi_finished)
@@ -43,9 +43,7 @@ def get_recipe(user: User, recipe_id: UUID) -> Recipe:
     пользователю или является системным шаблоном.
     """
     recipe = (
-        Recipe.objects.filter(
-            Q(id=recipe_id) & (Q(owner=user) | Q(owner__is_system=True))
-        )
+        Recipe.objects.filter(Q(id=recipe_id) & (Q(owner=user) | Q(owner__is_system=True)))
         .prefetch_related("recipe_ingredients__ingredient")
         .first()
     )
@@ -93,9 +91,7 @@ def create_recipe(user: User, data: RecipeCreateSchema) -> Recipe:
 
 
 @transaction.atomic
-def update_recipe(
-    user: User, recipe_id: UUID, data: RecipeUpdateSchema
-) -> Recipe:
+def update_recipe(user: User, recipe_id: UUID, data: RecipeUpdateSchema) -> Recipe:
     """
     Обновляет рецепт и его состав (только для личных рецептов пользователя).
     При передаче нового состава `items` текущие позиции заменяются на новые.
@@ -171,11 +167,7 @@ def copy_template_recipe(user: User, recipe_id: UUID) -> Recipe:
     """
     Копирует системный шаблон рецепта в личную книгу рецептов пользователя.
     """
-    template = (
-        Recipe.objects.filter(id=recipe_id)
-        .prefetch_related("recipe_ingredients")
-        .first()
-    )
+    template = Recipe.objects.filter(id=recipe_id).prefetch_related("recipe_ingredients").first()
     if not template or not getattr(template.owner, "is_system", False):
         raise HttpError(404, "Системный шаблон рецепта не найден.")
 

@@ -46,9 +46,7 @@ def create_ingredient(user: User, data: IngredientCreateSchema) -> Ingredient:
     )
 
 
-def update_ingredient(
-    user: User, ingredient_id: UUID, data: IngredientUpdateSchema
-) -> Ingredient:
+def update_ingredient(user: User, ingredient_id: UUID, data: IngredientUpdateSchema) -> Ingredient:
     """
     Обновляет данные ингредиента (только для личных ингредиентов пользователя).
     Попытка изменить системный шаблон возвращает 403 Forbidden.
